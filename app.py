@@ -3,6 +3,7 @@ import pandas as pd
 import requests
 import json
 from bs4 import BeautifulSoup
+import time
 
 # Function to perform a search using the Google Custom Search API
 def search(query, api_key, cse_id, country_code, language_code, **kwargs):
@@ -11,12 +12,23 @@ def search(query, api_key, cse_id, country_code, language_code, **kwargs):
         'q': query,
         'key': api_key,
         'cx': cse_id,
-        'gl': country_code,  # Geolocation parameter
-        'lr': language_code  # Language parameter
+        'gl': country_code,
+        'lr': language_code
     }
     params.update(kwargs)
-    response = requests.get(url, params=params)
-    return json.loads(response.text)
+
+    for attempt in range(5):  # Retry up to 5 times
+        try:
+            response = requests.get(url, params=params)
+            if response.status_code == 429:  # Rate limit hit
+                time.sleep(10)  # Wait for 10 seconds before retrying
+                continue
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            return json.loads(response.text)
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed: {e}, attempt {attempt + 1}/5")
+            time.sleep(5)  # Wait for 5 seconds before retrying
+    return {}  # Return an empty dictionary if all attempts fail
 
 # Function to extract bold text from HTML snippets
 def extract_bold_text_from_snippets(html_snippets):
