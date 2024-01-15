@@ -12,8 +12,8 @@ def search(query, api_key, cse_id, country_code, language_code, **kwargs):
         'q': query,
         'key': api_key,
         'cx': cse_id,
-        'gl': country_code,
-        'lr': language_code
+        'gl': country_code,  # Geolocation parameter
+        'lr': language_code  # Language parameter
     }
     params.update(kwargs)
 
@@ -56,78 +56,84 @@ def process_file(file, api_key, cse_id, country_code, language_code):
     df['SERP Title 3'] = ''
     df['Bold Text'] = ''
 
+    # Initialize progress bar
+    progress_bar = st.progress(0)
+    total = len(df)
+
     for index, row in df.iterrows():
         query = row['Target Query']
-
-        # Skip processing if the query is blank or empty
         if pd.isna(query) or query.strip() == '':
             continue
 
         results = search(query, api_key, cse_id, country_code, language_code)
 
-        # Extract SERP titles and bold text
         if 'items' in results:
             for i in range(min(3, len(results['items']))):
                 df.at[index, f'SERP Title {i+1}'] = results['items'][i].get('title', '')
 
             html_snippets = [item.get('htmlSnippet', '') for item in results['items']]
             df.at[index, 'Bold Text'] = extract_bold_text_from_snippets(html_snippets)
+        # Update progress bar
+        progress_bar.progress((index + 1) / total)
 
+    # Ensure the progress bar reaches 100% once processing is complete
+    progress_bar.progress(1.0)
     return df
 
 # Streamlit app layout
 def main():
     st.title("Title Meta Bold Text Scraper")
-
     st.markdown("""
     ## About the App
-*Title Meta Bold Text Scraper* is a tool designed for digital marketers and SEO professionals. This application allows users to upload a CSV file containing a list of target queries. For each query, it scrapes Google search results, extracting valuable information such as the top 3 title tags and bold text within the search results. This data is crucial for understanding search engine result page (SERP) trends, aiding in SEO optimization and content strategy development.
-""")
+    *Title Meta Bold Text Scraper* is a tool designed for digital marketers and SEO professionals. This application allows users to upload a CSV file containing a list of target queries. For each query, it scrapes Google search results, extracting valuable information such as the top 3 title tags and bold text within the search results. This data is crucial for understanding search engine result page (SERP) trends, aiding in SEO optimization and content strategy development.
+    """)
 
-# Define a list of countries and their codes
-countries = {
-    "United States": "US",
-    "United Kingdom": "GB",
-    "Canada": "CA",
-    "Australia": "AU",
-    "India": "IN"
-    # Add more countries and their codes here
-}
+    # Define a list of countries and their codes
+    countries = {
+        "United States": "US",
+        "United Kingdom": "GB",
+        "Canada": "CA",
+        "Australia": "AU",
+        "India": "IN"
+        # Add more countries and their codes here
+    }
 
-# Define a list of languages and their codes
-languages = {
-    "English": "lang_en",
-    "Spanish": "lang_es",
-    "French": "lang_fr",
-    "German": "lang_de",
-    "Chinese": "lang_zh"
-    # Add more languages and their codes here
-}
+    # Define a list of languages and their codes
+    languages = {
+        "English": "lang_en",
+        "Spanish": "lang_es",
+        "French": "lang_fr",
+        "German": "lang_de",
+        "Chinese": "lang_zh"
+        # Add more languages and their codes here
+    }
 
-# Dropdown for selecting a country
-selected_country = st.selectbox("Select a country for search", list(countries.keys()))
+    # Dropdown for selecting a country
+    selected_country = st.selectbox("Select a country for search", list(countries.keys()))
 
-# Dropdown for selecting a language
-selected_language = st.selectbox("Select a language for search", list(languages.keys()), index=0)
+    # Dropdown for selecting a language
+    selected_language = st.selectbox("Select a language for search", list(languages.keys()), index=0)
 
-# Use Streamlit secrets for API key and CSE ID
-api_key = st.secrets["GOOGLE_API_KEY"]
-cse_id = st.secrets["CUSTOM_SEARCH_ENGINE_ID"]
+    # Use Streamlit secrets for API key and CSE ID
+    api_key = st.secrets["GOOGLE_API_KEY"]
+    cse_id = st.secrets["CUSTOM_SEARCH_ENGINE_ID"]
 
-uploaded_file = st.file_uploader("Upload your file", type=["csv"])
+    uploaded_file = st.file_uploader("Upload your file", type=["csv"])
 
-if uploaded_file is not None and api_key and cse_id:
-    processed_data = process_file(uploaded_file, api_key, cse_id, countries[selected_country], languages[selected_language])
+    if uploaded_file is not None and api_key and cse_id:
+        processed_data = process_file(uploaded_file, api_key, cse_id, countries[selected_country], languages[selected_language])
 
-    st.write("Processed Data:")
-    st.write(processed_data)
+        st.write("Processed Data:")
+        st.write(processed_data)
 
-    # Download button
-    st.download_button(
-        label="Download processed data",
-        data=processed_data.to_csv(index=False),
-        file_name="processed_data.csv",
-        mime="text/csv",
-    )
+        # Download button
+        st.download_button(
+            label="Download processed data",
+            data=processed_data.to_csv(index=False),
+            file_name="processed_data.csv",
+            mime="text/csv",
+        )
+
 if __name__ == "__main__":
     main()
+
