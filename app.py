@@ -88,7 +88,7 @@ def main():
     *Title Meta Bold Text Scraper* is a tool designed for digital marketers and SEO professionals. This application allows users to upload a CSV file containing a list of target queries. For each query, it scrapes Google search results, extracting valuable information such as the top 3 title tags and bold text within the search results. This data is crucial for understanding search engine result page (SERP) trends, aiding in SEO optimization and content strategy development.
     """)
 
-    # Define a list of countries and their codes
+    #Define a list of countries and their codes:
     countries = {
         "United States": "US",
         "United Kingdom": "GB",
@@ -120,19 +120,25 @@ def main():
 
     uploaded_file = st.file_uploader("Upload your file", type=["csv"])
 
-    if uploaded_file is not None and api_key and cse_id:
-        processed_data = process_file(uploaded_file, api_key, cse_id, countries[selected_country], languages[selected_language])
+    # Start button - Only show this if a file is uploaded
+    if uploaded_file is not None:
+        if st.button('Start Processing'):
+            # Ensure API key and CSE ID are available
+            if api_key and cse_id:
+                processed_data = process_file(uploaded_file, api_key, cse_id, countries[selected_country], languages[selected_language])
 
-        st.write("Processed Data:")
-        st.write(processed_data)
+                st.write("Processed Data:")
+                st.write(processed_data)
 
-        # Download button
-        st.download_button(
-            label="Download processed data",
-            data=processed_data.to_csv(index=False),
-            file_name="processed_data.csv",
-            mime="text/csv",
-        )
+                # Download button
+                st.download_button(
+                    label="Download processed data",
+                    data=processed_data.to_csv(index=False),
+                    file_name="processed_data.csv",
+                    mime="text/csv",
+                )
+            else:
+                st.error("API Key or Custom Search Engine ID is missing.")
 
 if __name__ == "__main__":
     main()
