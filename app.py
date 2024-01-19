@@ -85,7 +85,7 @@ def main():
     st.title("Title Meta Bold Text Scraper")
     st.markdown("""
     ## About the App
-    *Title Meta Bold Text Scraper* is a tool designed for digital marketers and SEO professionals. This application allows users to upload a CSV file containing a list of target queries. For each query, it scrapes Google search results, extracting valuable information such as the top 3 title tags and bold text within the search results. This data is crucial for understanding search engine result page (SERP) trends, aiding in SEO optimization and content strategy development.
+    *Upload a CSV with one column with the header row labeled "Target Query" then run it. It will provide the first three title tags and bold text from Google search results for that query.
     """)
 
     #Define a list of countries and their codes:
