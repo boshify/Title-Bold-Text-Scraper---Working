@@ -88,7 +88,7 @@ def main():
     *Upload a CSV with one column with the header row labeled "Target Query" then run it. It will provide the first three title tags and bold text from Google search results for that query.
     """)
 
-    #Define a list of countries and their codes:
+    # Define countries and languages dictionaries
     countries = {
         "United States": "US",
         "United Kingdom": "GB",
@@ -98,7 +98,6 @@ def main():
         # Add more countries and their codes here
     }
 
-    # Define a list of languages and their codes
     languages = {
         "English": "lang_en",
         "Spanish": "lang_es",
@@ -108,22 +107,18 @@ def main():
         # Add more languages and their codes here
     }
 
-    # Dropdown for selecting a country
+    # Dropdown for selecting a country and a language
     selected_country = st.selectbox("Select a country for search", list(countries.keys()))
-
-    # Dropdown for selecting a language
     selected_language = st.selectbox("Select a language for search", list(languages.keys()), index=0)
 
-    # Use Streamlit secrets for API key and CSE ID
-    api_key = st.secrets["GOOGLE_API_KEY"]
-    cse_id = st.secrets["CUSTOM_SEARCH_ENGINE_ID"]
+    # Input fields for API key and CSE ID
+    api_key = st.text_input("Enter your Google API Key", type="password")
+    cse_id = st.text_input("Enter your Custom Search Engine ID")
 
     uploaded_file = st.file_uploader("Upload your file", type=["csv"])
 
-    # Start button - Only show this if a file is uploaded
     if uploaded_file is not None:
         if st.button('Start Processing'):
-            # Ensure API key and CSE ID are available
             if api_key and cse_id:
                 processed_data = process_file(uploaded_file, api_key, cse_id, countries[selected_country], languages[selected_language])
 
@@ -142,4 +137,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
